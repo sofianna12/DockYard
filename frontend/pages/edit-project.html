@@ -13,73 +13,167 @@
     <button class="btn btn-secondary btn-sm navbar-logout" onclick="logout()">Logout</button>
   </nav>
 
-  <div class="details-container">
-    <div class="details-card">
-      <h2 style="margin-bottom:1.5rem">Edit Project</h2>
+  <div class="form-page-container">
+    <div class="form-page-header">
+      <h2>Edit Project</h2>
+    </div>
 
-      <div id="alert" class="alert alert-error" style="display:none"></div>
+    <div id="alert" class="alert alert-error" style="display:none"></div>
 
-      <div class="form-group">
-        <label class="form-label">Title *</label>
-        <input id="title" type="text" class="form-input" placeholder="Tetris">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Description</label>
-        <textarea id="description" class="form-textarea" rows="3" placeholder="Arcade game..."></textarea>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Repository</label>
-        <input id="repository" type="url" class="form-input" placeholder="https://github.com/user/tetris">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Docker Image *</label>
-        <input id="docker-image" type="text" class="form-input" placeholder="bsord/tetris:latest">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Auto-stop after</label>
-        <select id="auto-stop" class="form-select">
-          <option value="30">30 minutes</option>
-          <option value="60">1 hour</option>
-          <option value="240">4 hours</option>
-          <option value="0">Never</option>
-        </select>
-      </div>
+    <div class="form-two-col">
 
-      <hr style="margin:1.5rem 0;border-color:var(--border)">
+      <!-- LEFT: basic fields -->
+      <div class="form-left">
 
-      <div class="form-group">
-        <label class="form-label">Environment Variables</label>
-        <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
-          <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin:0">
-            Upload .env file
-            <input id="env-file" type="file" accept=".env,text/plain" style="display:none" onchange="loadEnvFile(this)">
-          </label>
+        <div class="form-group">
+          <label class="form-label">Title *</label>
+          <input id="title" type="text" class="form-input" placeholder="Tetris">
         </div>
-        <textarea id="env-vars" class="form-textarea" rows="4" placeholder="KEY=value&#10;CERT_FILE=/certs/cert.pem&#10;KEY_FILE=/certs/key.pem"></textarea>
-        <small style="color:var(--text-muted)">If CERT_FILE + KEY_FILE are set, HTTPS is used automatically.</small>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="description" class="form-textarea" rows="3" placeholder="Arcade game..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Repository</label>
+          <input id="repository" type="url" class="form-input" placeholder="https://github.com/user/tetris">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Docker Image *</label>
+          <input id="docker-image" type="text" class="form-input" placeholder="bsord/tetris:latest">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Auto-stop after</label>
+          <select id="auto-stop" class="form-select">
+            <option value="30">30 minutes</option>
+            <option value="60">1 hour</option>
+            <option value="240">4 hours</option>
+            <option value="0">Never</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Project Type</label>
+          <div class="type-options">
+            <label class="type-option">
+              <input type="radio" name="project-type" value="terminal" onchange="onProjectTypeChange()">
+              <div>
+                <div class="type-option-title">Terminal project (no web UI)</div>
+                <div class="type-option-desc">Enable for CLI-only containers. An interactive terminal will replace the browser app link.</div>
+              </div>
+            </label>
+            <label class="type-option">
+              <input type="radio" name="project-type" value="web" onchange="onProjectTypeChange()">
+              <div>
+                <div class="type-option-title">Web</div>
+                <div class="type-option-desc">Expose a web UI via a container port.</div>
+              </div>
+            </label>
+            <label class="type-option">
+              <input type="radio" name="project-type" value="web_terminal" onchange="onProjectTypeChange()">
+              <div>
+                <div class="type-option-title">Web + Terminal</div>
+                <div class="type-option-desc">Expose a web UI and provide an interactive terminal.</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div id="port-group" class="form-group">
+          <label class="form-label">Container Port</label>
+          <input id="container-port" type="number" class="form-input" placeholder="8080 (leave empty for auto-detect)" min="1" max="65535">
+          <small style="color:#64748b">Which port inside the container to expose. Leave empty to auto-detect.</small>
+        </div>
+
+        <div id="scheme-group" class="form-group">
+          <label class="form-label">Scheme</label>
+          <select id="scheme" class="form-select">
+            <option value="http">http</option>
+            <option value="https">https</option>
+          </select>
+        </div>
+
+        <div class="details-actions">
+          <button class="btn btn-secondary" id="cancel-btn" onclick="goBack()">← Cancel</button>
+          <button id="submit-btn" class="btn btn-primary" onclick="submitForm()">Save Changes</button>
+        </div>
+
       </div>
 
-      <div class="form-group">
-        <label class="form-label">File Mounts</label>
-        <textarea id="mounts" class="form-textarea" rows="3" placeholder="/host/path/cert.pem:/certs/cert.pem&#10;/host/path/data:/data"></textarea>
-        <small style="color:var(--text-muted)">One mount per line: <code>host_path:container_path</code></small>
-      </div>
-      <div class="form-group">
-        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
-          <input id="terminal-mode" type="checkbox" onchange="onTerminalToggle()">
-          <span class="form-label" style="margin:0">Terminal project (no web UI)</span>
-        </label>
-        <small style="color:var(--text-muted)">Enable for CLI-only containers. An interactive terminal will replace the browser app link.</small>
-      </div>
-      <div id="port-group" class="form-group">
-        <label class="form-label">Container Port</label>
-        <input id="container-port" type="number" class="form-input" placeholder="8080 (leave empty for auto-detect)" min="0" max="65535">
-        <small style="color:var(--text-muted)">Which port inside the container to expose. Leave empty to auto-detect.</small>
-      </div>
+      <!-- RIGHT: accordions -->
+      <div class="form-right">
 
-      <div class="details-actions">
-        <button class="btn btn-secondary" id="cancel-btn" onclick="goBack()">← Cancel</button>
-        <button id="submit-btn" class="btn btn-primary" onclick="submitForm()">Save Changes</button>
+        <div class="accordion" id="acc-auth">
+          <div class="accordion-header" onclick="toggleAccordion('auth')">
+            <span>Docker Hub Auth</span>
+            <span class="accordion-arrow">▾</span>
+          </div>
+          <div class="accordion-body">
+            <div class="form-group" style="margin-top:1rem">
+              <label class="form-label">Registry Username</label>
+              <input id="registry-user" type="text" class="form-input" placeholder="dockerhub username">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Registry Password / Token</label>
+              <input id="registry-password" type="password" class="form-input" placeholder="Leave blank to keep existing">
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion" id="acc-env">
+          <div class="accordion-header" onclick="toggleAccordion('env')">
+            <span>Environment Variables</span>
+            <span class="accordion-arrow">▾</span>
+          </div>
+          <div class="accordion-body">
+            <div class="form-group" style="margin-top:1rem">
+              <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin-bottom:0.6rem;display:inline-flex">
+                Upload .env file
+                <input id="env-file" type="file" accept=".env,text/plain" style="display:none" onchange="loadEnvFile(this)">
+              </label>
+              <textarea id="env-vars" class="form-textarea" rows="5" placeholder="KEY=value&#10;CERT_FILE=/certs/cert.pem&#10;KEY_FILE=/certs/key.pem"></textarea>
+              <small style="color:#64748b">One variable per line in KEY=VALUE format.</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion" id="acc-mounts">
+          <div class="accordion-header" onclick="toggleAccordion('mounts')">
+            <span>File Mounts</span>
+            <span class="accordion-arrow">▾</span>
+          </div>
+          <div class="accordion-body">
+            <div class="form-group" style="margin-top:1rem">
+              <textarea id="mounts" class="form-textarea" rows="4" placeholder="/host/path/cert.pem:/certs/cert.pem&#10;/host/path/data:/data"></textarea>
+              <small style="color:#64748b">One mount per line: <code>host_path:container_path</code></small>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion" id="acc-files">
+          <div class="accordion-header" onclick="toggleAccordion('files')">
+            <span>Uploaded Files</span>
+            <span class="accordion-arrow">▾</span>
+          </div>
+          <div class="accordion-body">
+            <p style="color:#64748b;font-size:0.8rem;margin-top:1rem;margin-bottom:0.75rem">
+              Files are mounted inside the container at <code>/dockyard-files/&lt;filename&gt;</code>
+            </p>
+            <div id="files-alert" class="alert alert-error" style="display:none"></div>
+            <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.75rem">
+              <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin:0">
+                + Upload file
+                <input id="file-input" type="file" style="display:none" onchange="uploadFile(this)">
+              </label>
+              <span id="upload-status" style="color:#64748b;font-size:0.85rem"></span>
+            </div>
+            <div id="files-list"></div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
