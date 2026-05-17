@@ -64,10 +64,32 @@ function updateStatus(status, url, lastAccessed) {
     stopBtn.disabled        = false
     stopBtn.textContent     = '■ Stop'
     if (project && project.terminal_mode) {
-      document.getElementById('terminal-section').style.display = 'block'
+      document.getElementById('terminal-section').style.display = 'flex'
+      document.getElementById('details-container').classList.add('wide')
       openApp.style.display = 'none'
       openTerminal()
+    } else if (project && project.web_terminal) {
+      document.getElementById('terminal-section').style.display = 'flex'
+      document.getElementById('terminal-section').classList.add('split-logs')
+      document.getElementById('details-container').classList.add('wide')
+      document.getElementById('terminal-logs-panel').style.display = 'flex'
+      document.getElementById('bottom-logs-section').style.display = 'none'
+      document.querySelector('.details-bottom-card').style.display = 'none'
+      if (url) {
+        openApp.style.display = 'block'
+        openLink.href         = url
+        openLink.textContent  = `🔗 Open App (${url})`
+      }
+      openTerminal()
     } else if (url) {
+      document.getElementById('terminal-topbar').style.display    = 'none'
+      document.getElementById('terminal-container').style.display  = 'none'
+      document.getElementById('terminal-section').style.display    = 'flex'
+      document.getElementById('terminal-section').classList.add('split-logs')
+      document.getElementById('details-container').classList.add('wide')
+      document.getElementById('terminal-logs-panel').style.display = 'flex'
+      document.getElementById('bottom-logs-section').style.display = 'none'
+      document.querySelector('.details-bottom-card').style.display = 'none'
       openApp.style.display = 'block'
       openLink.href         = url
       openLink.textContent  = `🔗 Open App (${url})`
@@ -90,7 +112,14 @@ function updateStatus(status, url, lastAccessed) {
     launchBtn.textContent   = '▶ Run Docker'
     stopBtn.style.display   = 'none'
     openApp.style.display   = 'none'
-    document.getElementById('terminal-section').style.display = 'none'
+    document.getElementById('terminal-topbar').style.display    = ''
+    document.getElementById('terminal-container').style.display  = ''
+    document.getElementById('terminal-section').style.display    = 'none'
+    document.getElementById('terminal-section').classList.remove('split-logs')
+    document.getElementById('details-container').classList.remove('wide')
+    document.getElementById('terminal-logs-panel').style.display = 'none'
+    document.getElementById('bottom-logs-section').style.display = ''
+    document.querySelector('.details-bottom-card').style.display = ''
     closeTerminal()
     stopPolling()
     stopCountdown()
@@ -180,14 +209,20 @@ async function stopContainer() {
 }
 
 async function refreshLogs() {
-  const el = document.getElementById('logs-output')
+  const el     = document.getElementById('logs-output')
+  const elSide = document.getElementById('logs-output-side')
   try {
-    const res = await api.getLogs(projectId, 200)
+    const res  = await api.getLogs(projectId, 200)
     const text = res && res.logs ? res.logs.trim() : ''
     el.textContent = text || 'No logs yet.'
-    el.scrollTop = el.scrollHeight
+    el.scrollTop   = el.scrollHeight
+    if (elSide) {
+      elSide.textContent = text || 'No logs yet.'
+      elSide.scrollTop   = elSide.scrollHeight
+    }
   } catch (err) {
     el.textContent = 'Error fetching logs: ' + err.message
+    if (elSide) elSide.textContent = 'Error fetching logs: ' + err.message
   }
 }
 
@@ -204,72 +239,67 @@ function stopLogsAutoRefresh() {
   logsInterval = null
 }
 
-async function loadFiles() {
-  const list = document.getElementById('files-list')
-  try {
-    const files = await api.listFiles(projectId)
-    if (!files || files.length === 0) {
-      list.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem">No files uploaded yet.</p>'
-      return
-    }
-    list.innerHTML = files.map(f => `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--border)">
-        <div>
-          <code style="font-size:0.85rem">${escapeHtml(f.filename)}</code>
-          <span style="color:var(--text-muted);font-size:0.8rem;margin-left:0.75rem">→ <code>/dockyard-files/${escapeHtml(f.filename)}</code></span>
-          <span style="color:var(--text-muted);font-size:0.75rem;margin-left:0.5rem">(${formatBytes(f.size_bytes)})</span>
-        </div>
-        <button class="btn btn-danger btn-sm" onclick="deleteFile('${escapeHtml(f.filename)}')">✕</button>
-      </div>
-    `).join('')
-  } catch (err) {
-    list.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem">${escapeHtml(err.message)}</p>`
-  }
-}
-
-async function uploadFile(input) {
-  const file = input.files[0]
-  if (!file) return
-  const status = document.getElementById('upload-status')
-  const alertEl = document.getElementById('files-alert')
-  alertEl.style.display = 'none'
-  status.textContent = 'Uploading...'
-  input.disabled = true
-
-  const formData = new FormData()
-  formData.append('file', file)
-
-  try {
-    await api.uploadFile(projectId, formData)
-    status.textContent = ''
-    input.value = ''
-    loadFiles()
-  } catch (err) {
-    alertEl.textContent   = err.message
-    alertEl.style.display = 'block'
-    status.textContent    = ''
-  } finally {
-    input.disabled = false
-  }
-}
-
-async function deleteFile(filename) {
-  if (!confirm(`Delete "${filename}"?`)) return
-  const alertEl = document.getElementById('files-alert')
-  alertEl.style.display = 'none'
-  try {
-    await api.deleteFile(projectId, filename)
-    loadFiles()
-  } catch (err) {
-    alertEl.textContent   = err.message
-    alertEl.style.display = 'block'
-  }
-}
-
-function formatBytes(bytes) {
+function formatFileSize(bytes) {
   if (bytes < 1024) return bytes + ' B'
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+}
+
+function renderFiles(files) {
+  const el = document.getElementById('files-list')
+  if (!files || files.length === 0) {
+    el.innerHTML = '<span class="files-empty">No files uploaded.</span>'
+    return
+  }
+  el.innerHTML = files.map(f => `
+    <div class="file-item">
+      <div class="file-item-info">
+        <div class="file-item-name">${escapeHtml(f.filename)}</div>
+        <div class="file-item-path">${escapeHtml(f.container_path)}</div>
+      </div>
+      <span class="file-item-size">${formatFileSize(f.size_bytes)}</span>
+      <button class="file-delete-btn" onclick="handleFileDelete(${JSON.stringify(f.filename)})" title="Delete">✕</button>
+    </div>
+  `).join('')
+}
+
+async function loadFiles() {
+  try {
+    const files = await api.listFiles(projectId)
+    renderFiles(files)
+  } catch (_) {
+    renderFiles([])
+  }
+}
+
+async function handleFileUpload(event) {
+  const file = event.target.files[0]
+  if (!file) return
+  const formData = new FormData()
+  formData.append('file', file)
+  const btn = document.getElementById('upload-btn')
+  btn.disabled    = true
+  btn.textContent = 'Uploading...'
+  try {
+    await api.uploadFile(projectId, formData)
+    await loadFiles()
+  } catch (err) {
+    alert('Upload failed: ' + err.message)
+  } finally {
+    btn.disabled    = false
+    btn.textContent = '+ Upload'
+    event.target.value = ''
+  }
+}
+
+async function handleFileDelete(filename) {
+  if (!confirm(`Delete "${filename}"?`)) return
+  try {
+    await api.deleteFile(projectId, filename)
+    await loadFiles()
+  } catch (err) {
+    alert('Delete failed: ' + err.message)
+  }
 }
 
 async function init() {
@@ -284,8 +314,13 @@ async function init() {
   }
 }
 
+let termLastAttempt = 0
+
 function openTerminal() {
-  if (termWs && termWs.readyState === WebSocket.OPEN) return
+  if (termWs && (termWs.readyState === WebSocket.OPEN || termWs.readyState === WebSocket.CONNECTING)) return
+  const now = Date.now()
+  if (now - termLastAttempt < 5000) return
+  termLastAttempt = now
 
   if (!term) {
     term = new Terminal({ cursorBlink: true, fontSize: 14, theme: { background: '#0d1117', foreground: '#e6edf3' } })
