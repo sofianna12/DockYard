@@ -30,7 +30,7 @@ const api = {
   login: (email, password) =>
     apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
 
-  getProjects: (page = 1, limit = 20) => apiFetch(`/api/projects?page=${page}&limit=${limit}`),
+  getProjects: (page = 1, limit = 20, q = '') => apiFetch(`/api/projects?page=${page}&limit=${limit}${q ? '&q=' + encodeURIComponent(q) : ''}`),
 
   getProject: (id) => apiFetch(`/api/projects/${id}`),
 
