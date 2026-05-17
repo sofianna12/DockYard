@@ -1,12 +1,23 @@
 requireAuth()
 
 let currentPage = 1
-const PAGE_SIZE = 20
+let currentQuery = ''
+const PAGE_SIZE = 9
+let searchTimeout = null
+
+function onSearch(value) {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    currentQuery = value.trim()
+    currentPage = 1
+    loadProjects(1)
+  }, 300)
+}
 
 async function loadProjects(page = 1) {
   const grid = document.getElementById('projects-grid')
   try {
-    const res = await api.getProjects(page, PAGE_SIZE)
+    const res = await api.getProjects(page, PAGE_SIZE, currentQuery)
     const projects = res.data
     const total = res.total
 
@@ -43,9 +54,9 @@ function renderPagination(total, page) {
   if (!container) return
   if (totalPages <= 1) { container.innerHTML = ''; return }
   container.innerHTML = `
-    <button onclick="changePage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>← Prev</button>
-    <span>Page ${page} / ${totalPages}</span>
-    <button onclick="changePage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>Next →</button>
+    <button class="btn btn-secondary btn-sm" onclick="changePage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>← Prev</button>
+    <span style="color:#64748b;font-size:0.875rem">Page ${page} / ${totalPages}</span>
+    <button class="btn btn-secondary btn-sm" onclick="changePage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>Next →</button>
   `
 }
 
