@@ -122,7 +122,7 @@ func LaunchContainer(db *gorm.DB, cfg *config.Config) gin.HandlerFunc {
 			if cfg.FilesHostDir != "" {
 				hostFilesDir := filepath.Join(cfg.FilesHostDir, project.ID.String())
 				if _, err := os.Stat(filepath.Join(cfg.FilesDir, project.ID.String())); err == nil {
-					binds = append(binds, fmt.Sprintf("%s:/dockyard-files:ro", hostFilesDir))
+					binds = append(binds, fmt.Sprintf("%s:/dockyard-files", hostFilesDir))
 				}
 			}
 
