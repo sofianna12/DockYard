@@ -63,7 +63,7 @@ func TerminalWS(db *gorm.DB, cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		if !project.TerminalMode {
+		if !project.TerminalMode && !project.WebTerminal {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "not a terminal project"})
 			return
 		}
