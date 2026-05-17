@@ -24,10 +24,10 @@ A user registers/logs in, adds their projects by providing a title, description,
 Browser
   |
   v
-Frontend (React + TypeScript + Tailwind — port 5173)
-  |  REST API (Axios)
+Frontend (HTML/CSS/JS + Nginx — port 5173)
+  |  REST API (fetch)
   v
-Backend (Go + Gin — port 8080)
+Backend (Go + Gin — port 8081)
   |                    |
   v                    v
 PostgreSQL          Docker Daemon
@@ -36,60 +36,57 @@ PostgreSQL          Docker Daemon
 
 ## Services
 
-| Service  | Technology         | Port |
-|----------|--------------------|------|
-| frontend | React + Vite       | 5173 |
-| backend  | Go + Gin           | 8080 |
-| database | PostgreSQL 16      | 5432 |
+| Service  | Technology          | Port |
+|----------|-------------------- |------|
+| frontend | HTML/CSS/JS + Nginx | 5173 |
+| backend  | Go + Gin            | 8081 |
+| database | PostgreSQL 16       | 5432 |
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/youruser/dockyard
+git clone https://github.com/sofianna12/DockYard
 cd dockyard
 cp .env.example .env
+#You can generate a value for JWT_SECRET and ENCRYPTION_KEY by running either of these commands and
+#pasting the output into your .env file:
+openssl rand -base64 32
+#or
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 docker-compose up --build
+#Then open: http://localhost:5173
 
-Κάνεις docker-compose down → τα δεδομένα μένουν εκεί, ασφαλή
-Κάνεις docker-compose up ξανά → η PostgreSQL τα βρίσκει και συνεχίζει κανονικά
-Μόνο docker-compose down -v ή docker volume rm dockyard_pgdata τα διαγράφει
 
-# Μπες στη βάση
+#data remains intact, safely stored in the volume
+docker-compose down     
+#PostgreSQL finds the existing data and continues normally    
+docker-compose up          
+#permanently deletes all data (use with caution)
+docker-compose down -v     
+#same as above, removes the volume directly
+docker volume rm dockyard_pgdata 
+
+# Connect to the database
 docker exec -it dockyard_database_1 psql -U dockyard -d dockyard
 
-# Εντολές μέσα:
-\dt              → δες τους πίνακες
+# Commands inside psql:
+\dt              # list all tables
 SELECT * FROM users;
 SELECT * FROM projects;
-\q               → έξοδος
-
+\q               # exit
 ```
-
-Then open: http://localhost:5173
 
 ## Repository Structure
 
 ```
 dockyard/
-├── README.md
-├── docker-compose.yml
-├── .env.example
-├── backend/
-├── frontend/
-└── database/
+├── docker-compose.yml         # defines all services
+├── .env.example               # template for environment variables
+├── backend/                   # Go REST API
+├── frontend/                  # HTML/CSS/JS + Nginx
+└── database/                  # PostgreSQL init scripts
 ```
 
-## Documentation Index
 
-| File | Description |
-|------|-------------|
-| README.md | This file — project overview |
-| ARCHITECTURE.md | Full system architecture and data flow |
-| BACKEND.md | Go backend implementation guide |
-| FRONTEND.md | React frontend implementation guide |
-| DATABASE.md | PostgreSQL schema and migrations |
-| API.md | All REST API endpoints with request/response examples |
-| DOCKER.md | Docker setup, compose config, and deployment |
-| IMPLEMENTATION_ORDER.md | Step-by-step build order for AI or developer |
 
 
