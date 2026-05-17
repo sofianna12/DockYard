@@ -103,7 +103,10 @@ func LaunchContainer(db *gorm.DB, cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		scheme := detectScheme(project.EnvVars)
+		scheme := project.Scheme
+		if scheme == "" {
+			scheme = detectScheme(project.EnvVars)
+		}
 
 		go func() {
 			// Build bind mounts: prefer the Mounts field; fall back to legacy host: prefix in Repository.
