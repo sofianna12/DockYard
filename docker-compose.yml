@@ -1,0 +1,63 @@
+version: '2.4'
+
+services:
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - dockyard-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/app/data
+    environment:
+      - PORT=8081
+      - DB_URL=postgres://dockyard:dockyard@database:5432/dockyard
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - FILES_HOST_DIR=${FILES_HOST_DIR}
+      - IDLE_TIMEOUT_MINUTES=60
+      - CLEANUP_INTERVAL_MINUTES=5
+    networks:
+      - dockyard-network
+
+  database:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=dockyard
+      - POSTGRES_PASSWORD=dockyard
+      - POSTGRES_DB=dockyard
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dockyard"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dockyard-network
+
+volumes:
+  pgdata:
+
+networks:
+  dockyard-network:
+    driver: bridge

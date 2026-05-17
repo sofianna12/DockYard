@@ -1,0 +1,8 @@
+.env
+
+# Go compiled binary
+backend/dockyard
+
+# OS files
+.DS_Store
+Thumbs.dbforum/

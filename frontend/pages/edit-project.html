@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DockYard — Edit Project</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <span class="navbar-title">⚓ DockYard</span>
+    <button class="btn btn-secondary btn-sm navbar-logout" onclick="logout()">Logout</button>
+  </nav>
+
+  <div class="details-container">
+    <div class="details-card">
+      <h2 style="margin-bottom:1.5rem">Edit Project</h2>
+
+      <div id="alert" class="alert alert-error" style="display:none"></div>
+
+      <div class="form-group">
+        <label class="form-label">Title *</label>
+        <input id="title" type="text" class="form-input" placeholder="Tetris">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="description" class="form-textarea" rows="3" placeholder="Arcade game..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Repository</label>
+        <input id="repository" type="url" class="form-input" placeholder="https://github.com/user/tetris">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Docker Image *</label>
+        <input id="docker-image" type="text" class="form-input" placeholder="bsord/tetris:latest">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Auto-stop after</label>
+        <select id="auto-stop" class="form-select">
+          <option value="30">30 minutes</option>
+          <option value="60">1 hour</option>
+          <option value="240">4 hours</option>
+          <option value="0">Never</option>
+        </select>
+      </div>
+
+      <hr style="margin:1.5rem 0;border-color:var(--border)">
+
+      <div class="form-group">
+        <label class="form-label">Environment Variables</label>
+        <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
+          <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin:0">
+            Upload .env file
+            <input id="env-file" type="file" accept=".env,text/plain" style="display:none" onchange="loadEnvFile(this)">
+          </label>
+        </div>
+        <textarea id="env-vars" class="form-textarea" rows="4" placeholder="KEY=value&#10;CERT_FILE=/certs/cert.pem&#10;KEY_FILE=/certs/key.pem"></textarea>
+        <small style="color:var(--text-muted)">If CERT_FILE + KEY_FILE are set, HTTPS is used automatically.</small>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">File Mounts</label>
+        <textarea id="mounts" class="form-textarea" rows="3" placeholder="/host/path/cert.pem:/certs/cert.pem&#10;/host/path/data:/data"></textarea>
+        <small style="color:var(--text-muted)">One mount per line: <code>host_path:container_path</code></small>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+          <input id="terminal-mode" type="checkbox" onchange="onTerminalToggle()">
+          <span class="form-label" style="margin:0">Terminal project (no web UI)</span>
+        </label>
+        <small style="color:var(--text-muted)">Enable for CLI-only containers. An interactive terminal will replace the browser app link.</small>
+      </div>
+      <div id="port-group" class="form-group">
+        <label class="form-label">Container Port</label>
+        <input id="container-port" type="number" class="form-input" placeholder="8080 (leave empty for auto-detect)" min="0" max="65535">
+        <small style="color:var(--text-muted)">Which port inside the container to expose. Leave empty to auto-detect.</small>
+      </div>
+
+      <div class="details-actions">
+        <button class="btn btn-secondary" id="cancel-btn" onclick="goBack()">← Cancel</button>
+        <button id="submit-btn" class="btn btn-primary" onclick="submitForm()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/edit-project.js"></script>
+</body>
+</html>

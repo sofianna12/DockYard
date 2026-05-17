@@ -1,0 +1,289 @@
+/* === RESET & BASE === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0f1117;
+  color: #e2e8f0;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+
+/* === NAVBAR === */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: #1a1f2e;
+  border-bottom: 1px solid #2d3748;
+}
+.navbar-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+.navbar-logout {
+  cursor: pointer;
+}
+
+/* === AUTH PAGES === */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+.auth-card {
+  background: #1a1f2e;
+  border-radius: 16px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid #2d3748;
+}
+.auth-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+.auth-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+.auth-link a {
+  color: #3b82f6;
+}
+.auth-link a:hover {
+  text-decoration: underline;
+}
+
+/* === FORM ELEMENTS === */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #94a3b8;
+  margin-bottom: 0.4rem;
+}
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  background: #0f1117;
+  border: 1px solid #2d3748;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: #3b82f6;
+}
+.form-select {
+  cursor: pointer;
+}
+.form-textarea {
+  resize: vertical;
+}
+.form-error {
+  color: #fc8181;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+/* === BUTTONS === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.1s;
+  font-family: inherit;
+}
+.btn:hover { opacity: 0.85; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: #3b82f6; color: white; }
+.btn-secondary { background: transparent; border: 1px solid #4a5568; color: #e2e8f0; }
+.btn-danger { background: #e53e3e; color: white; }
+.btn-sm { padding: 0.3rem 0.8rem; font-size: 0.85rem; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* === DASHBOARD === */
+.dashboard-container {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.dashboard-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #64748b;
+}
+.empty-state p {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* === PROJECT CARD === */
+.project-card {
+  background: #1a1f2e;
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #2d3748;
+}
+.project-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.project-card-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.project-card-description {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+.project-card-image {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 1rem;
+}
+
+/* === STATUS BADGE === */
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.badge-stopped  { background: #2d3748; color: #94a3b8; }
+.badge-pulling  { background: #744210; color: #fbd38d; }
+.badge-running  { background: #1c4532; color: #68d391; }
+.badge-error    { background: #742a2a; color: #fc8181; }
+
+/* === PROJECT DETAILS PAGE === */
+.details-container {
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+.details-card {
+  background: #1a1f2e;
+  border-radius: 12px;
+  padding: 2rem;
+  border: 1px solid #2d3748;
+}
+.details-title {
+  font-size: 2rem;
+  font-weight: 700;
+}
+.details-row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  border-bottom: 1px solid #2d3748;
+  padding-bottom: 1rem;
+  align-items: flex-start;
+}
+.details-label {
+  color: #64748b;
+  width: 140px;
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  padding-top: 0.1rem;
+}
+.details-value {
+  color: #e2e8f0;
+  word-break: break-word;
+}
+.details-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+.countdown {
+  color: #f59e0b;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+.open-app-link {
+  color: #3b82f6;
+  text-decoration: underline;
+  font-size: 0.9rem;
+}
+
+/* === SPINNER === */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* === ALERTS === */
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+.alert-error   { background: #742a2a; color: #fc8181; }
+.alert-success { background: #1c4532; color: #68d391; }
+
+/* === RESPONSIVE === */
+@media (max-width: 640px) {
+  .projects-grid { grid-template-columns: 1fr; }
+  .details-row { flex-direction: column; gap: 0.25rem; }
+  .details-label { width: auto; }
+  .details-actions { flex-direction: column; }
+  .details-actions .btn { width: 100%; }
+}

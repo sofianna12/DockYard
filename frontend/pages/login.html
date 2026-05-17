@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DockYard — Login</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1 class="auth-title">⚓ DockYard</h1>
+      <p style="color:#64748b; margin-bottom:2rem; text-align:center;">Sign in to your account</p>
+
+      <div id="alert" class="alert alert-error" style="display:none"></div>
+
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input id="email" type="email" class="form-input" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input id="password" type="password" class="form-input" placeholder="••••••••">
+      </div>
+
+      <button id="submit-btn" class="btn btn-primary" style="width:100%; margin-top:1rem">
+        Sign In
+      </button>
+
+      <p class="auth-link">Don't have an account? <a href="register.html">Register</a></p>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script>
+    if (localStorage.getItem('token')) window.location.href = 'dashboard.html'
+
+    const alertEl = document.getElementById('alert')
+
+    document.getElementById('password').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') document.getElementById('submit-btn').click()
+    })
+
+    document.getElementById('submit-btn').addEventListener('click', async () => {
+      const email    = document.getElementById('email').value.trim()
+      const password = document.getElementById('password').value
+      const btn      = document.getElementById('submit-btn')
+
+      alertEl.style.display = 'none'
+
+      if (!email || !password) {
+        alertEl.textContent = 'Please fill in all fields'
+        alertEl.style.display = 'block'
+        return
+      }
+
+      btn.disabled = true
+      btn.innerHTML = '<span class="spinner"></span> Signing in...'
+
+      try {
+        const res = await api.login(email, password)
+        localStorage.setItem('token', res.token)
+        window.location.href = 'dashboard.html'
+      } catch (err) {
+        alertEl.textContent = err.message
+        alertEl.style.display = 'block'
+        btn.disabled = false
+        btn.textContent = 'Sign In'
+      }
+    })
+  </script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DockYard — Project Details</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <span class="navbar-title">⚓ DockYard</span>
+    <button class="btn btn-secondary btn-sm navbar-logout" onclick="logout()">Logout</button>
+  </nav>
+
+  <div class="details-container">
+    <div class="details-card">
+
+      <div id="alert" class="alert alert-error" style="display:none"></div>
+
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem">
+        <h1 id="title" class="details-title">Loading...</h1>
+        <span id="status-badge" class="badge badge-stopped">stopped</span>
+      </div>
+
+      <div id="countdown" class="countdown" style="display:none"></div>
+      <div id="open-app" style="display:none; margin-top:0.5rem">
+        <a id="open-app-link" href="#" target="_blank" class="open-app-link">🔗 Open App</a>
+      </div>
+
+      <div id="terminal-section" style="display:none;margin-top:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+          <span style="font-size:0.85rem;color:var(--text-muted)">Terminal</span>
+          <button class="btn btn-secondary btn-sm" onclick="reconnectTerminal()">↻ Reconnect</button>
+        </div>
+        <div id="terminal-container" style="border-radius:6px;overflow:hidden;background:#000;padding:4px"></div>
+      </div>
+
+      <div class="details-row">
+        <span class="details-label">Description</span>
+        <span id="description" class="details-value">—</span>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Repository</span>
+        <span id="repository" class="details-value">—</span>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Docker Image</span>
+        <span id="docker-image" class="details-value" style="font-family:monospace">—</span>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Auto-stop</span>
+        <span id="auto-stop" class="details-value">—</span>
+      </div>
+      <div class="details-row">
+        <span class="details-label">Created</span>
+        <span id="created-at" class="details-value">—</span>
+      </div>
+
+      <div class="details-actions">
+        <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">← Back</button>
+        <button id="launch-btn" class="btn btn-primary" onclick="launchContainer()">▶ Run Docker</button>
+        <button id="stop-btn" class="btn btn-danger" onclick="stopContainer()" style="display:none">■ Stop</button>
+        <button class="btn btn-secondary" onclick="editProject()">✏ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProject()" style="margin-left:auto">🗑 Delete</button>
+      </div>
+
+      <hr style="margin:1.5rem 0;border-color:var(--border)">
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+        <h3 style="font-size:1rem;margin:0">Container Logs</h3>
+        <div style="display:flex;gap:0.5rem;align-items:center">
+          <label style="font-size:0.8rem;color:var(--text-muted)">
+            <input type="checkbox" id="logs-auto-refresh" checked style="margin-right:0.3rem">Auto-refresh
+          </label>
+          <button class="btn btn-secondary btn-sm" onclick="refreshLogs()">↻ Refresh</button>
+        </div>
+      </div>
+      <pre id="logs-output" style="background:#0d1117;color:#e6edf3;padding:1rem;border-radius:6px;font-size:0.78rem;max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin-bottom:1.5rem">No logs yet.</pre>
+
+      <hr style="margin:1.5rem 0;border-color:var(--border)">
+
+      <h3 style="margin-bottom:1rem;font-size:1rem">Uploaded Files</h3>
+      <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem">
+        Files are available inside the container at <code>/dockyard-files/&lt;filename&gt;</code>
+      </p>
+
+      <div id="files-alert" class="alert alert-error" style="display:none"></div>
+
+      <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
+        <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin:0">
+          + Upload file
+          <input id="file-input" type="file" style="display:none" onchange="uploadFile(this)">
+        </label>
+        <span id="upload-status" style="color:var(--text-muted);font-size:0.85rem"></span>
+      </div>
+
+      <div id="files-list"></div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/project-details.js"></script>
+</body>
+</html>
