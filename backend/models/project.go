@@ -19,6 +19,7 @@ type Project struct {
 	Mounts           string     `json:"mounts"`
 	ContainerPort    int        `gorm:"default:0" json:"container_port"`
 	TerminalMode     bool       `gorm:"default:false" json:"terminal_mode"`
+	WebTerminal      bool       `gorm:"default:false" json:"web_terminal"`
 	AutoStopMin      int        `gorm:"default:60" json:"auto_stop_min"`
 	Status           string     `gorm:"default:'stopped'" json:"status"` // stopped | pulling | running | error
 	Scheme           string     `gorm:"default:'http'" json:"scheme"`    // http | https
