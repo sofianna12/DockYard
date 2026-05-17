@@ -46,11 +46,17 @@ func GetProjects(db *gorm.DB) gin.HandlerFunc {
 			limit = 20
 		}
 		offset := (page - 1) * limit
+		q := c.Query("q")
 
 		var projects []models.Project
 		var total int64
-		db.Model(&models.Project{}).Where("user_id = ?", userID).Count(&total)
-		db.Where("user_id = ?", userID).Offset(offset).Limit(limit).Find(&projects)
+		query := db.Model(&models.Project{}).Where("user_id = ?", userID)
+		if q != "" {
+			like := "%" + q + "%"
+			query = query.Where("title ILIKE ? OR description ILIKE ?", like, like)
+		}
+		query.Count(&total)
+		query.Offset(offset).Limit(limit).Find(&projects)
 
 		c.JSON(http.StatusOK, gin.H{
 			"data":  projects,
@@ -80,7 +86,9 @@ func CreateProject(db *gorm.DB, cfg *config.Config) gin.HandlerFunc {
 			Mounts           string `json:"mounts"`
 			ContainerPort    int    `json:"container_port"`
 			TerminalMode     bool   `json:"terminal_mode"`
+			WebTerminal      bool   `json:"web_terminal"`
 			AutoStopMin      int    `json:"auto_stop_min"`
+			Scheme           string `json:"scheme"`
 		}
 
 		if err := c.ShouldBindJSON(&input); err != nil {
@@ -100,6 +108,11 @@ func CreateProject(db *gorm.DB, cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
+		scheme := input.Scheme
+		if scheme != "https" {
+			scheme = "http"
+		}
+
 		project := models.Project{
 			ID:               uuid.New(),
 			UserID:           userID,
@@ -113,8 +126,10 @@ func CreateProject(db *gorm.DB, cfg *config.Config) gin.HandlerFunc {
 			Mounts:           input.Mounts,
 			ContainerPort:    input.ContainerPort,
 			TerminalMode:     input.TerminalMode,
+			WebTerminal:      input.WebTerminal,
 			AutoStopMin:      autoStop,
 			Status:           "stopped",
+			Scheme:           scheme,
 		}
 
 		if err := db.Create(&project).Error; err != nil {
@@ -174,7 +189,9 @@ func UpdateProject(db *gorm.DB, cfg *config.Config) gin.HandlerFunc {
 			Mounts           string `json:"mounts"`
 			ContainerPort    int    `json:"container_port"`
 			TerminalMode     *bool  `json:"terminal_mode"`
+			WebTerminal      *bool  `json:"web_terminal"`
 			AutoStopMin      int    `json:"auto_stop_min"`
+			Scheme           string `json:"scheme"`
 		}
 
 		if err := c.ShouldBindJSON(&input); err != nil {
@@ -215,8 +232,15 @@ func UpdateProject(db *gorm.DB, cfg *config.Config) gin.HandlerFunc {
 		if input.TerminalMode != nil {
 			updates["terminal_mode"] = *input.TerminalMode
 		}
+		if input.WebTerminal != nil {
+			updates["web_terminal"] = *input.WebTerminal
+		}
 		if input.AutoStopMin > 0 {
 			updates["auto_stop_min"] = input.AutoStopMin
+		}
+		switch input.Scheme {
+		case "https", "http":
+			updates["scheme"] = input.Scheme
 		}
 
 		if err := db.Model(&project).Updates(updates).Error; err != nil {
