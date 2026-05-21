@@ -1,10 +1,10 @@
-FROM golang:1.26-alpine AS builder
+FROM golang:1.26-alpine@sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d AS builder
 WORKDIR /app
 COPY go.mod ./
 COPY . .
 RUN GOFLAGS="-mod=mod" GONOSUMDB="*" go build -o dockyard .
 
-FROM alpine:3.23.3
+FROM alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
 RUN apk upgrade --no-cache && apk --no-cache add ca-certificates
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /home/appuser/
