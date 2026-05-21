@@ -10,8 +10,15 @@ services:
       - "5173:80"
     depends_on:
       - backend
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+    cpus: '0.5'
+    mem_limit: 128m
     networks:
-      - dockyard-network
+      - public
 
   backend:
     build:
@@ -22,42 +29,51 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    cpus: '1.0'
+    mem_limit: 256m
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/app/data
     environment:
       - PORT=8081
-      - DB_URL=postgres://dockyard:dockyard@database:5432/dockyard
+      - DB_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
       - JWT_SECRET=${JWT_SECRET}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - FILES_HOST_DIR=${FILES_HOST_DIR}
       - IDLE_TIMEOUT_MINUTES=60
       - CLEANUP_INTERVAL_MINUTES=5
     networks:
-      - dockyard-network
+      - public
+      - internal
 
   database:
     image: postgres:16
-    ports:
-      - "5432:5432"
+    cpus: '0.5'
+    mem_limit: 512m
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./database/init:/docker-entrypoint-initdb.d
     environment:
-      - POSTGRES_USER=dockyard
-      - POSTGRES_PASSWORD=dockyard
-      - POSTGRES_DB=dockyard
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dockyard"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - dockyard-network
+      - internal
 
 volumes:
   pgdata:
 
 networks:
-  dockyard-network:
+  public:
     driver: bridge
+  internal:
+    driver: bridge
+    internal: true
