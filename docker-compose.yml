@@ -34,6 +34,8 @@ services:
       - /tmp
     cpus: '1.0'
     mem_limit: 256m
+    group_add:
+      - "0"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/app/data
