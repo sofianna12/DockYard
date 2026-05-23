@@ -1,4 +1,4 @@
-# DockYard 🚀⚓
+# DockYard 
 
 DockYard is a self-hosted web platform that allows each registered user to manage and run their personal projects via Docker, directly from the browser.
 
@@ -44,36 +44,75 @@ PostgreSQL          Docker Daemon
 
 ## Quick Start
 
+### 1. Clone and configure
+
 ```bash
 git clone https://github.com/sofianna12/DockYard
-cd dockyard
+cd DockYard
 cp .env.example .env
-#You can generate a value for JWT_SECRET and ENCRYPTION_KEY by running either of these commands and
-#pasting the output into your .env file:
+```
+
+Edit `.env` and fill in the two secrets:
+
+```bash
+# JWT_SECRET — any random string:
 openssl rand -base64 32
-#or
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-docker-compose up --build
-#Then open: http://localhost:5173
 
+# ENCRYPTION_KEY — must be exactly 64 hex characters:
+openssl rand -hex 32
+```
 
-#data remains intact, safely stored in the volume
-docker-compose down     
-#PostgreSQL finds the existing data and continues normally    
-docker-compose up          
-#permanently deletes all data (use with caution)
-docker-compose down -v     
-#same as above, removes the volume directly
-docker volume rm dockyard_pgdata 
+Copy the output of each command and paste it into `.env`.
 
-# Connect to the database
+### 2. Start
+
+Use `start.sh` / `start.ps1` instead of `docker-compose` directly.
+They automatically detect the Docker socket permissions so the backend can launch containers on any OS.
+
+**Linux / macOS:**
+```bash
+./start.sh up --build
+```
+
+**Windows (PowerShell):**
+```powershell
+./start.ps1 up --build
+```
+
+Then open: http://localhost:5173
+
+> After the first run, the correct settings are saved in `.env`, so plain `docker-compose up` works too.
+
+### 3. Stop / restart
+
+```bash
+# Linux:
+./start.sh down
+
+# Windows:
+./start.ps1 down
+```
+
+Data is preserved in the PostgreSQL volume and reloaded on the next start.
+
+### Danger zone
+
+```bash
+# Permanently delete all data (cannot be undone):
+docker-compose down -v
+```
+
+### Database access
+
+```bash
 docker exec -it dockyard_database_1 psql -U dockyard -d dockyard
+```
 
-# Commands inside psql:
-\dt              # list all tables
+```sql
+\dt                  -- list all tables
 SELECT * FROM users;
 SELECT * FROM projects;
-\q               # exit
+\q                   -- exit
 ```
 
 ## Repository Structure
