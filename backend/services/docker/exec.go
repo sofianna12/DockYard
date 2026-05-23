@@ -24,7 +24,7 @@ func ExecTTY(containerID string) (*ExecSession, error) {
 		AttachStdout: true,
 		AttachStderr: true,
 		Tty:          true,
-		Cmd:          []string{"sh"},
+		Cmd:          []string{"sh", "-i"},
 	})
 	if err != nil {
 		return nil, err
