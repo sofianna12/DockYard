@@ -85,7 +85,7 @@ Then open: http://localhost:5173
 
 ### 3. Stop / restart
 
-```bash
+```bash 
 # Linux:
 ./start.sh down
 
