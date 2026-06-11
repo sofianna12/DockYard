@@ -83,6 +83,9 @@ Then open: http://localhost:5173
 
 > After the first run, the correct settings are saved in `.env`, so plain `docker-compose up` works too.
 
+> **Rootless Docker?** Set `DOCKER_SOCK` and `DOCKER_GID` in `.env` (see `.env.example`).
+> A standard Docker install needs nothing — it works out of the box.
+
 ### 3. Stop / restart
 
 ```bash 
@@ -114,6 +117,24 @@ SELECT * FROM users;
 SELECT * FROM projects;
 \q                   -- exit
 ```
+
+## Building project images
+
+The Docker daemon only runs images it has **locally**, so build your project image on
+the same daemon DockYard uses — otherwise the launch fails with `pull access denied`.
+On a standard Docker install that is automatic:
+
+```bash
+docker build -t my-project:latest .
+```
+
+Then use `my-project:latest` as the project's Docker image in the UI.
+
+> **Rootless Docker only:** if you run the daemon in rootless mode, point the build at
+> its socket first, since it has a separate image store:
+> ```bash
+> export DOCKER_HOST=unix:///run/user/$(id -u)/docker.sock
+> ```
 
 ## Repository Structure
 
