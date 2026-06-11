@@ -83,7 +83,8 @@ Then open: http://localhost:5173
 
 > After the first run, the correct settings are saved in `.env`, so plain `docker-compose up` works too.
 
-> **Rootless Docker?** Set `DOCKER_SOCK` and `DOCKER_GID` in `.env` (see `.env.example`).
+> **Rootless Docker?** Install it with `curl -fsSL https://get.docker.com/rootless | sh`,
+> then set `DOCKER_SOCK` and `DOCKER_GID` in `.env` (see `.env.example`).
 > A standard Docker install needs nothing — it works out of the box.
 
 ### 3. Stop / restart
