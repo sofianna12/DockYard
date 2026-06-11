@@ -29,14 +29,38 @@ func parseEnvVars(raw string) []string {
 	return vars
 }
 
-// parseMounts parses a multi-line string of bind mounts in "host_path:container_path" format.
-func parseMounts(raw string) []string {
+// validateMounts parses a multi-line string of bind mounts in "host_path:container_path[:ro]"
+// format and returns only those whose host path resolves inside allowedBase. Any mount that is
+// not absolute, contains "..", or points outside the project's sandbox directory is rejected.
+// This prevents a user from mounting arbitrary host paths (e.g. "/" or the Docker socket).
+func validateMounts(raw, allowedBase string) []string {
 	var binds []string
+	if allowedBase == "" {
+		// Without a known-safe base we cannot confine mounts, so allow none.
+		return binds
+	}
+	base := filepath.Clean(allowedBase)
+
 	for _, line := range strings.Split(raw, "\n") {
 		line = strings.TrimSpace(line)
-		if line != "" && strings.Contains(line, ":") {
-			binds = append(binds, line)
+		if line == "" {
+			continue
 		}
+		parts := strings.SplitN(line, ":", 3) // host:container[:ro]
+		if len(parts) < 2 {
+			continue
+		}
+		hostPath := filepath.Clean(parts[0])
+
+		if !filepath.IsAbs(hostPath) || strings.Contains(parts[0], "..") {
+			log.Printf("rejected unsafe mount (not absolute / contains ..): %s", line)
+			continue
+		}
+		if hostPath != base && !strings.HasPrefix(hostPath, base+string(os.PathSeparator)) {
+			log.Printf("rejected mount outside allowed dir %q: %s", base, line)
+			continue
+		}
+		binds = append(binds, line)
 	}
 	return binds
 }
@@ -110,12 +134,18 @@ func LaunchContainer(db *gorm.DB, cfg *config.Config) gin.HandlerFunc {
 
 		go func() {
 			// Build bind mounts: prefer the Mounts field; fall back to legacy host: prefix in Repository.
+			// Both are user-controlled, so every host path is validated against the project's sandbox.
+			var allowedBase string
+			if cfg.FilesHostDir != "" {
+				allowedBase = filepath.Join(cfg.FilesHostDir, project.ID.String())
+			}
+
 			var binds []string
 			if project.Mounts != "" {
-				binds = parseMounts(project.Mounts)
+				binds = validateMounts(project.Mounts, allowedBase)
 			} else if strings.HasPrefix(project.Repository, "host:") {
 				hostPath := strings.TrimPrefix(project.Repository, "host:")
-				binds = []string{fmt.Sprintf("%s:/app", hostPath)}
+				binds = validateMounts(fmt.Sprintf("%s:/app", hostPath), allowedBase)
 			}
 
 			// Auto-mount uploaded files directory if it exists and FILES_HOST_DIR is configured.
