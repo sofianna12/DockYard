@@ -5,4 +5,7 @@ backend/dockyard
 
 # OS files
 .DS_Store
-Thumbs.dbforum/
+Thumbs.db
+forum/
+rootless.sh
+image.tar
