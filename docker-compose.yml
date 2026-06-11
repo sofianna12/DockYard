@@ -1,5 +1,3 @@
-version: '2.4'
-
 services:
 
   frontend:
@@ -34,10 +32,13 @@ services:
       - /tmp
     cpus: '1.0'
     mem_limit: 256m
+    # Defaults to the standard (rootful) socket. For rootless Docker, set
+    # DOCKER_SOCK and DOCKER_GID in .env (see .env.example). appuser stays
+    # non-root and joins DOCKER_GID to reach the daemon.
     group_add:
       - "${DOCKER_GID:-0}"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
       - ./data:/app/data
     environment:
       - PORT=8081
