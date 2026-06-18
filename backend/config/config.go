@@ -16,6 +16,7 @@ type Config struct {
 	FilesHostDir           string // corresponding path on the Docker host (for bind mounts)
 	IdleTimeoutMinutes     int
 	CleanupIntervalMinutes int
+	AutoMigrate            bool // run GORM AutoMigrate on startup; keep false in prod (SQL migrations are the source of truth)
 }
 
 func Load() *Config {
@@ -41,6 +42,7 @@ func Load() *Config {
 		FilesHostDir:           getEnv("FILES_HOST_DIR", ""),
 		IdleTimeoutMinutes:     getEnvInt("IDLE_TIMEOUT_MINUTES", 60),
 		CleanupIntervalMinutes: getEnvInt("CLEANUP_INTERVAL_MINUTES", 5),
+		AutoMigrate:            getEnvBool("AUTO_MIGRATE", true),
 	}
 }
 
@@ -61,4 +63,16 @@ func getEnvInt(key string, fallback int) int {
 		return fallback
 	}
 	return n
+}
+
+func getEnvBool(key string, fallback bool) bool {
+	val := os.Getenv(key)
+	if val == "" {
+		return fallback
+	}
+	b, err := strconv.ParseBool(val)
+	if err != nil {
+		return fallback
+	}
+	return b
 }

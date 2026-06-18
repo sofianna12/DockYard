@@ -17,7 +17,7 @@ func main() {
 	godotenv.Load()
 
 	cfg := config.Load()
-	database := db.Connect(cfg.DBURL)
+	database := db.Connect(cfg.DBURL, cfg.AutoMigrate)
 
 	go cleanup.StartWorker(database)
 
