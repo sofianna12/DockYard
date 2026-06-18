@@ -13,10 +13,10 @@ type Project struct {
 	Description      string     `json:"description"`
 	Repository       string     `json:"repository"`
 	DockerImage      string     `gorm:"not null" json:"docker_image"`
-	RegistryUser     string     `json:"registry_user"`
-	RegistryPassword string     `json:"-"`
-	EnvVars          string     `json:"env_vars"`
-	Mounts           string     `json:"mounts"`
+	RegistryUser     string     `gorm:"not null;default:''" json:"registry_user"`
+	RegistryPassword string     `gorm:"not null;default:''" json:"-"`
+	EnvVars          string     `gorm:"not null;default:''" json:"env_vars"`
+	Mounts           string     `gorm:"not null;default:''" json:"mounts"`
 	ContainerPort    int        `gorm:"default:0" json:"container_port"`
 	TerminalMode     bool       `gorm:"default:false" json:"terminal_mode"`
 	WebTerminal      bool       `gorm:"default:false" json:"web_terminal"`

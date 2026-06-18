@@ -12,4 +12,6 @@ type User struct {
 	PasswordHash string    `gorm:"not null" json:"-"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+
+	Projects []Project `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
 }
