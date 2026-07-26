@@ -56,10 +56,17 @@ Edit `.env` and fill in the two secrets:
 
 ```bash
 # JWT_SECRET — any random string:
+#Git bash
 openssl rand -base64 32
+# or powerswell
+[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 }))
+
 
 # ENCRYPTION_KEY — must be exactly 64 hex characters:
+#Git bash
 openssl rand -hex 32
+#or powershell
+$b=New-Object byte[] 32; [System.Security.Cryptography.RNGCryptoServiceProvider]::new().GetBytes($b); -join ($b | ForEach-Object { $_.ToString("x2") })
 ```
 
 Copy the output of each command and paste it into `.env`.
