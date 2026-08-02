@@ -8,8 +8,7 @@ FROM alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f
 RUN apk upgrade --no-cache && apk --no-cache add ca-certificates
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /home/appuser/
-COPY --from=builder /app/dockyard .
-RUN chown appuser:appgroup dockyard
+COPY --chown=appuser:appgroup --from=builder /app/dockyard .
 USER appuser
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD wget -qO- http://localhost:8081/health || exit 1
