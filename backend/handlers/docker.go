@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -29,9 +30,35 @@ func parseEnvVars(raw string) []string {
 	return vars
 }
 
+// mountLineRe matches "host:container[:ro]" where the host path is either
+// POSIX-absolute (/...) or Windows-absolute (C:\... or C:/...). The backend
+// always runs as a Linux binary (Alpine container), so Go's path/filepath
+// only understands POSIX syntax regardless of the Docker host's own OS -
+// without this, any Windows-style path typed by a Windows user (and the
+// drive-letter colon it contains) would be misparsed and silently rejected.
+var mountLineRe = regexp.MustCompile(`^([A-Za-z]:[\\/][^:]*|/[^:]*):([^:]+)(?::(ro))?$`)
+
+// normalizeHostPath makes a host-side mount path comparable regardless of
+// whether it was typed with POSIX or Windows path syntax: backslashes are
+// converted to forward slashes, a trailing slash is dropped, and a leading
+// Windows drive letter is lowercased (Windows drive letters and, in
+// practice, the whole path are case-insensitive; a POSIX path has no drive
+// letter so this step is a no-op for it).
+func normalizeHostPath(p string) string {
+	p = strings.ReplaceAll(p, `\`, "/")
+	for len(p) > 1 && strings.HasSuffix(p, "/") {
+		p = p[:len(p)-1]
+	}
+	if len(p) >= 2 && p[1] == ':' && ((p[0] >= 'A' && p[0] <= 'Z') || (p[0] >= 'a' && p[0] <= 'z')) {
+		p = strings.ToLower(p[:1]) + p[1:]
+	}
+	return p
+}
+
 // validateMounts parses a multi-line string of bind mounts in "host_path:container_path[:ro]"
-// format and returns only those whose host path resolves inside allowedBase. Any mount that is
-// not absolute, contains "..", or points outside the project's sandbox directory is rejected.
+// format (host_path may be POSIX-style, e.g. /home/user/x, or Windows-style, e.g. C:\Users\x or
+// C:/Users/x) and returns only those whose host path resolves inside allowedBase. Any mount that
+// is not absolute, contains "..", or points outside the project's sandbox directory is rejected.
 // This prevents a user from mounting arbitrary host paths (e.g. "/" or the Docker socket).
 func validateMounts(raw, allowedBase string) []string {
 	var binds []string
@@ -39,24 +66,27 @@ func validateMounts(raw, allowedBase string) []string {
 		// Without a known-safe base we cannot confine mounts, so allow none.
 		return binds
 	}
-	base := filepath.Clean(allowedBase)
+	base := normalizeHostPath(allowedBase)
 
 	for _, line := range strings.Split(raw, "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
 		}
-		parts := strings.SplitN(line, ":", 3) // host:container[:ro]
-		if len(parts) < 2 {
+		m := mountLineRe.FindStringSubmatch(line)
+		if m == nil {
+			log.Printf("rejected unsafe mount (not absolute / malformed): %s", line)
 			continue
 		}
-		hostPath := filepath.Clean(parts[0])
+		rawHostPath := m[1]
 
-		if !filepath.IsAbs(hostPath) || strings.Contains(parts[0], "..") {
-			log.Printf("rejected unsafe mount (not absolute / contains ..): %s", line)
+		if strings.Contains(rawHostPath, "..") {
+			log.Printf("rejected unsafe mount (contains ..): %s", line)
 			continue
 		}
-		if hostPath != base && !strings.HasPrefix(hostPath, base+string(os.PathSeparator)) {
+
+		hostPath := normalizeHostPath(rawHostPath)
+		if hostPath != base && !strings.HasPrefix(hostPath, base+"/") {
 			log.Printf("rejected mount outside allowed dir %q: %s", base, line)
 			continue
 		}
