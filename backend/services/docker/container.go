@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/go-connections/nat"
 )
 
@@ -93,4 +94,17 @@ func StopAndRemoveContainer(containerID string) error {
 	ctx := context.Background()
 	cli.ContainerStop(ctx, containerID, container.StopOptions{})
 	return cli.ContainerRemove(ctx, containerID, container.RemoveOptions{Force: true})
+}
+
+
+func ContainerRunning(containerID string) (exists bool, running bool, err error) {
+	cli := GetClient()
+	info, err := cli.ContainerInspect(context.Background(), containerID)
+	if err != nil {
+		if errdefs.IsNotFound(err) {
+			return false, false, nil
+		}
+		return false, false, err
+	}
+	return true, info.State.Running, nil
 }
